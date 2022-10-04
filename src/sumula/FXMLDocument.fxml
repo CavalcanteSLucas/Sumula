@@ -135,8 +135,8 @@
                         <Font name="Barlow Condensed ExtraLight" size="40.0" />
                      </font>
                   </Text>
-                  <Button fx:id="btnStop" layoutX="201.0" layoutY="13.0" mnemonicParsing="false" onAction="#clicouStop" text="Stop" />
-                    <Button fx:id="btnStart" layoutX="152.0" layoutY="13.0" onAction="#clicouStart" text="Start" />
+                  <Button fx:id="btnStop" disable="true" layoutX="228.0" layoutY="6.0" mnemonicParsing="false" onAction="#clicouStop" prefHeight="34.0" prefWidth="72.0" text="Parar" textFill="#ff9d00" />
+                    <Button fx:id="btnStart" layoutX="151.0" layoutY="6.0" onAction="#clicouStart" prefHeight="34.0" prefWidth="72.0" text="Iniciar" textFill="#03b909" />
                   <Text layoutX="3.0" layoutY="37.0" strokeType="OUTSIDE" strokeWidth="0.0" text="1°">
                      <font>
                         <Font name="Arial" size="40.0" />

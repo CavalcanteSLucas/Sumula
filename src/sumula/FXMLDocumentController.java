@@ -1,11 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXML2.java to edit this template
- */
 package sumula;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -17,42 +15,53 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
-import sumula.model.Relogio;
 
 /**
  *
  * @author Lucas Cavalcante
  */
 public class FXMLDocumentController implements Initializable {    
-    // Importar elementos de tela
-    @FXML private MenuItem menuNovaSumula;
-    @FXML private Pane painelNovaSumula;
-    @FXML private Pane painelDigTimes;
-    @FXML private TextField edtTimeA;
-    @FXML private TextField edtTimeB;
+    // Importar elementos de tela **********************************************
+    /* Botões */
     @FXML private Button btnConfTimes;
     @FXML private Button btnStart;
+    @FXML private Button btnStop;
+    @FXML private Button btnPedirTempo;
+    
+    /* Textos */
     @FXML private Text txtMinuto;
     @FXML private Text txtSegundo;
     @FXML private Text txtTimeA;
     @FXML private Text txtTimeB;
-    @FXML private Button btnPedirTempo;
     @FXML private Text txtTempPedido1T;
     @FXML private Text txtTempPedido2T;
+    
+    /* Caixas de texto */
+    @FXML private TextField edtTimeA;
+    @FXML private TextField edtTimeB;
     @FXML private TextField edtJogador1TA;
     
-    // Variáveis
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    int min = 0;
-    boolean pediuTempo = false;
-    Relogio stopwatch1;
+    /* Outros */
+    @FXML private MenuItem menuNovaSumula;
+    @FXML private Pane painelNovaSumula;
+    @FXML private Pane painelDigTimes;
     
-    // Butões
+    
+    // Variáveis ***************************************************************
+    Timer cronometro;
+    TimerTask tarefa;
+    int segundo = 0;
+    int minuto = 0;
+    boolean pediuTempo = false;
+    
+    // Eventos *****************************************************************
+    /* Botão Nova Súmula */
     @FXML
     private void novaSumula(){
         painelDigTimes.setVisible(true);
     }
     
+    /* Botão para confirmar times */
     @FXML
     private void clicouConfTimes(){
         painelDigTimes.setVisible(false);
@@ -61,58 +70,65 @@ public class FXMLDocumentController implements Initializable {
         txtTimeB.setText(edtTimeB.getText());
     }
     
+    // Cronômetro **************************************************************
+    /* Botão para iniciar cronômetro */
     @FXML
     private void clicouStart(ActionEvent event) {
-        stopwatch1.start();
+        if(btnStop.getText().equals("Zerar")) btnStop.setText("Parar");
         
-        for(;stopwatch1.getStopWatchRunning() == true;){
-            System.out.println("Elapsed time in milliseconds: "
-                    + stopwatch1.getElapsedMilliseconds());
-
-            System.out.println("Elapsed time in seconds: "
-                    + stopwatch1.getElapsedSeconds());
-
-            System.out.println("Elapsed time in minutes: "
-                    + stopwatch1.getElapsedMinutes());
-
-            System.out.println("Elapsed time in hours: "
-                    + stopwatch1.getElapsedHours());
-        }
-
+        btnStart.setDisable(true); // Desabilita o botão iniciar
+        btnStop.setDisable(false); // Habilita o botão parar / zerar
         
-        final Runnable runnable = new Runnable() {
-            int countdownStarter = 0;
-
+        cronometro = new Timer();
+        tarefa = new TimerTask() {
+            @Override
             public void run() {
-                countdownStarter++;
-
-                if (countdownStarter == 60) {
-                    min = Integer.parseInt(txtMinuto.getText()) + 1;
-                    if(min < 10){
-                        txtMinuto.setText("0" + Integer.toString(min));
+                segundo++;
+                if(segundo == 60){ // Acrescenta um minuto
+                    minuto = Integer.parseInt(txtMinuto.getText()) + 1;
+                    if(minuto < 10){
+                        txtMinuto.setText("0" + minuto);
                     }else{
-                        txtMinuto.setText(Integer.toString(min));
+                        txtMinuto.setText(Integer.toString(minuto));
                     }
-                    countdownStarter = 0;
+                    segundo = 0;
                 }
-                if(countdownStarter < 10){
-                    txtSegundo.setText("0" + Integer.toString(countdownStarter));
+                
+                if(segundo < 10){ // Acrescenta um segundo
+                    txtSegundo.setText("0" + segundo);
                 }else{
-                    txtSegundo.setText(Integer.toString(countdownStarter));
+                    txtSegundo.setText(Integer.toString(segundo));
                 }
             }
-        };
-        scheduler.scheduleAtFixedRate(runnable, 0, 1, SECONDS);
-    }
+        }; // Fim evento tarefa
+        int milissegundo = 1000;
+        cronometro.schedule(tarefa, milissegundo, milissegundo);
+    } // Fim botão start
     
+    /* Botão para parar ou zerar cronômetro */
     @FXML
     void clicouStop(ActionEvent event) {
-        stopwatch1.stop();
+        btnStart.setDisable(false);
         
-        scheduler.shutdown();
-        
+        if(btnStop.getText().equals("Parar")){
+            btnStart.setText("Retomar"); // Muda o texto do botão para retomar
+            btnStop.setText("Zerar"); // Transforma o botão parar em zerar
+            cronometro.cancel();
+            cronometro = null;
+        }else if(btnStop.getText().equals("Zerar")){
+            btnStart.setText("Iniciar"); // Muda o texto do botão para iniciar
+            btnStop.setText("Parar"); // Transforma o botão zerar em parar
+            txtSegundo.setText("00");
+            txtMinuto.setText("00");
+            btnStop.setDisable(true);
+            segundo = 0;
+            minuto = 0;
+            cronometro = null;
+        }
     }
     
+    // *************************************************************************
+    /* Botão para pedir tempo */
     @FXML
     void clicouPedirTempo(ActionEvent event) {
         pediuTempo = true;
@@ -125,22 +141,6 @@ public class FXMLDocumentController implements Initializable {
     // Classe inicializar
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        stopwatch1 = new Relogio();
-        
-        
-        
-        /*stopwatch1.start();
-        Fibonacci(45);
-        stopwatch1.stop();*/
-
-
         
     }
-    
-    /*private static BigInteger Fibonacci(int n) {
-        if (n < 2)
-            return BigInteger.ONE;
-        else
-            return Fibonacci(n - 1).add(Fibonacci(n - 2)); 
-    }*/
 }
